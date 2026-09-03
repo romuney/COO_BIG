@@ -95,6 +95,17 @@ main { max-width: 1300px; margin: 0 auto; padding: 0 44px 80px; }
 .stake:last-child { border-bottom: 0; }
 .stake .m { font-family: var(--mono); font-size: 11.5px; color: var(--red-ink); }
 .assump { font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.5; margin-top: 8px; }
+.scoreboard { margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 12px; }
+.scoreboard .t { font-size: 12.5px; line-height: 1.5; color: var(--ink-2); margin-top: 6px; }
+.scoreboard .cmp { display: flex; gap: 18px; margin-top: 8px; font-family: var(--mono); font-size: 11.5px; }
+.scoreboard .cmp span { color: var(--muted); }
+.scoreboard .cmp b { display: block; color: var(--ink); font-weight: 600; font-size: 12.5px; margin-top: 2px; }
+.hero-pair { display: flex; align-items: baseline; gap: 26px; flex-wrap: wrap; margin: 14px 0 0; }
+.hero-pair .one { font-family: var(--display); font-weight: 900; font-size: 96px; line-height: .86; letter-spacing: -.035em; }
+.hero-pair .vs { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); align-self: center; }
+.hero-pair .two { font-family: var(--display); font-weight: 900; font-size: 96px; line-height: .86; letter-spacing: -.035em; color: var(--red); }
+.hero-legend { display: flex; gap: 26px; margin-top: 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.hero-legend span { flex: 0 0 auto; }
 
 /* ============================================================ сигналы */
 .sig-head { display: flex; align-items: baseline; gap: 14px; border-top: 2px solid var(--rule-hard); padding-top: 12px; margin-bottom: 4px; }
@@ -189,6 +200,9 @@ main { max-width: 1300px; margin: 0 auto; padding: 0 44px 80px; }
 .dv text { fill: var(--ink-2); }
 /* шкала лимита */
 .gap .track { fill: var(--sunk); }
+.gap .rangeband { fill: none; stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 3; }
+.gap .rangecap { stroke: var(--ink); stroke-width: 1.5; }
+.gap .rangelab { fill: var(--muted); font-size: 9.5px; letter-spacing: .12em; }
 .gap .over { fill: var(--red-soft); }
 .gap .fact { fill: var(--ink); }
 .gap .limitline { stroke: var(--red); stroke-width: 2.5; }
@@ -218,6 +232,8 @@ main { max-width: 1300px; margin: 0 auto; padding: 0 44px 80px; }
 .bigline .main { fill: none; stroke: var(--red); stroke-width: 2.5; stroke-linejoin: round; }
 .bigline .cmp { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
 .bigline .band { fill: var(--sunk); }
+.bigline .start { fill: var(--muted); }
+.bigline .startlab { fill: var(--muted); font-size: 11px; }
 .bigline .end { fill: var(--red); }
 .bigline .endlab { fill: var(--red); font-size: 13px; font-weight: 600; font-family: var(--display); }
 .bigline .cmplab { fill: var(--muted); font-size: 11px; }

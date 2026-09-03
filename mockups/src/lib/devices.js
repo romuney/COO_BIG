@@ -28,6 +28,14 @@ const DEV = (() => {
     // черта лимита
     s += `<line class="limitline" x1="${x(limit)}" y1="${y - 22}" x2="${x(limit)}" y2="${y + bh + 22}"/>`;
     s += `<text class="limitlab" x="${x(limit)}" y="${y - 28}" text-anchor="middle">ЛИМИТ ${int(limit)}</text>`;
+    // вилка прогноза: диапазон, а не точка
+    if (o.range) {
+      const a = x(o.range[0]), z = x(o.range[1]);
+      s += `<rect class="rangeband" x="${a}" y="${y - 10}" width="${Math.max(2, z - a)}" height="${bh + 20}"/>`;
+      s += `<line class="rangecap" x1="${a}" y1="${y - 10}" x2="${a}" y2="${y + bh + 10}"/>`;
+      s += `<line class="rangecap" x1="${z}" y1="${y - 10}" x2="${z}" y2="${y + bh + 10}"/>`;
+      s += `<text class="rangelab" x="${(a + z) / 2}" y="${y - 16}" text-anchor="middle">ПРОГНОЗ НА ДЕКАБРЬ</text>`;
+    }
     // маркеры прогнозов
     (o.marks || []).forEach(m => {
       const mx = x(m.value);
@@ -119,6 +127,9 @@ const DEV = (() => {
     }
     if (c) s += `<polyline class="cmp" points="${c.map((t, i) => `${x(i)},${y(t)}`).join(' ')}"/>`;
     s += `<polyline class="main" points="${v.map((t, i) => `${x(i)},${y(t)}`).join(' ')}"/>`;
+    // первая точка подписана: иначе наклон ничем не ограничен и читается как угодно
+    s += `<circle class="start" cx="${x(0)}" cy="${y(v[0])}" r="3.5"/>`;
+    s += `<text class="startlab" x="${x(0)}" y="${y(v[0]) - 9}" text-anchor="start">${num(v[0], o.decimals == null ? 1 : o.decimals)}${o.unit || ''}</text>`;
     s += `<circle class="end" cx="${x(n - 1)}" cy="${y(v[n - 1])}" r="5"/>`;
     s += `<text class="endlab" x="${x(n - 1) + 10}" y="${y(v[n - 1]) + 5}">${num(v[n - 1], o.decimals == null ? 1 : o.decimals)}${o.unit || ''}</text>`;
     if (c) s += `<text class="cmplab" x="${x(n - 1) + 10}" y="${y(c[n - 1]) + 5}">${num(c[n - 1], o.decimals == null ? 1 : o.decimals)}${o.unit || ''}</text>`;
