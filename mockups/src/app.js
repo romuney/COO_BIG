@@ -1,5 +1,9 @@
 /* app.js — рендер страниц Exec Board из window.DATA */
 (() => {
+  /* Без viewport-меты телефон верстает страницу в 980 px и всё уезжает.
+     Артефакт-обёртка мету добавляет, но самодостаточный файл открывают и напрямую. */
+  (() => { if (!document.querySelector('meta[name="viewport"]')) { const m = document.createElement('meta'); m.name = 'viewport'; m.content = 'width=device-width, initial-scale=1, viewport-fit=cover'; document.head.appendChild(m); } })();
+
   const D = window.DATA, M = D.meta;
   const { fmtInt, fmtNum, fmtPct, fmtVal, fmtDelta, esc } = CH;
 
@@ -53,7 +57,7 @@
       return `<div class="sig-group">${name} · ${rows.length}</div>` + rows.map(s => `<a class="sig" href="#p-${s.page}"><i class="dot ${lv}"></i><div><span class="t">${esc(s.title)}.</span> <span class="x">${esc(s.text)}</span>${s.owner ? `<span class="x"> — ${esc(s.owner)}</span>` : ''}</div><span class="pg">стр. ${pageNo(s.page)}</span></a>`).join('');
     }).join('');
     return `${pageHead(p, S.headline, `Ежемесячный обзор для исполнительного директора · ${M.company} · читать 10 минут: страницы 01–02 — картина месяца, 03–10 — разделы по запросу`)}
-      <div class="rail-layout" style="grid-template-columns: minmax(0,1fr) 420px">
+      <div class="rail-layout flip">
         <div class="stack">
           <div class="summary-text">${S.paragraphs.map(t => `<p>${esc(t)}</p>`).join('')}</div>
           <div class="grid g2">

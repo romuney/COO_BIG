@@ -1,6 +1,10 @@
 /* field.js — «Поле»: каждый человек — точка; история месяца управляется прокруткой,
    решение о найме — ползунком. Все числа приходят из DATA, геометрия считается здесь. */
 (() => {
+  /* Без viewport-меты телефон верстает страницу в 980 px и всё уезжает.
+     Артефакт-обёртка мету добавляет, но самодостаточный файл открывают и напрямую. */
+  (() => { if (!document.querySelector('meta[name="viewport"]')) { const m = document.createElement('meta'); m.name = 'viewport'; m.content = 'width=device-width, initial-scale=1, viewport-fit=cover'; document.head.appendChild(m); } })();
+
   const D = window.DATA, T = D.control_panel, F = D.findings, S = D.summary, K = D.stakes;
   const { int, num, esc, plural } = DEV;
   const byId = Object.fromEntries(T.map(t => [t.id, t]));
@@ -66,27 +70,44 @@
     COLOR.bg = g('--bg'); COLOR.rule = g('--rule'); COLOR.muted = g('--muted'); COLOR.ink = g('--ink'); COLOR.redSoft = g('--red-soft');
   }
 
-  let layoutCh = 0;
+  const needsQueue = ch => ch === 2 || ch === 3;
+  let layoutCh = 0, mob = false;
   function layout(ch) {
     if (ch != null) layoutCh = ch;
     dpr = Math.min(2, window.devicePixelRatio || 1);
-    W = window.innerWidth; H = window.innerHeight;
-    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px'; }
+    // размеры берём у самого холста: на мобильном он занимает только верх экрана
+    W = cv.clientWidth || window.innerWidth; H = cv.clientHeight || window.innerHeight;
+    mob = W < 900;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = W * dpr; cv.height = H * dpr; }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // поле лимита: справа, чтобы слева читались карточки; на панели — ещё правее
-    const left = narrow() ? 24 : Math.max(W * (layoutCh === 8 ? 0.58 : 0.44), 520);
-    const right = W - (narrow() ? 24 : 150);
-    const top = 96, bottom = H - 150;
-    const availW = Math.max(200, right - left), availH = Math.max(200, bottom - top);
-    COLS = 160; ROWS = Math.ceil(LIMIT / COLS);
+    let left, right, top, bottom, fTop, fBottom;
+    if (mob) {
+      // вертикальная раскладка: очередь полосой сверху (только там, где она нужна),
+      // поле в середине, переполнение полосой снизу. Под каждую подпись отведена своя строка.
+      left = 14; right = W - 14;
+      const qH = 46, sH = 28, gap = 12, lab = 15, bar = 46;
+      queue.x = left; queue.w = right - left;
+      let t = bar;
+      if (needsQueue(layoutCh)) { queue.y = t + lab; queue.h = qH; t = queue.y + qH + gap; }
+      else { queue.y = t; queue.h = 1; }
+      fTop = t + lab;
+      fBottom = H - (sH + lab + gap + 8);
+    } else {
+      left = Math.max(W * (layoutCh === 8 ? 0.58 : 0.44), 520);
+      right = W - 150; top = 96; bottom = H - 150;
+      fTop = top; fBottom = bottom;
+    }
+    const availW = Math.max(160, right - left), availH = Math.max(140, fBottom - fTop);
+    // число колонок подбираем под пропорцию площадки, чтобы поле её заполняло
+    COLS = Math.max(40, Math.min(420, Math.round(Math.sqrt(LIMIT * availW / availH))));
+    ROWS = Math.ceil(LIMIT / COLS);
     cell = Math.min(availW / COLS, availH / ROWS);
     field.w = COLS * cell; field.h = ROWS * cell;
-    field.x = left + (availW - field.w) / 2 - 20; field.y = top + (availH - field.h) / 2;
-    // очередь — справа от поля
-    queue.x = field.x + field.w + 26; queue.w = Math.max(60, W - queue.x - 24); queue.y = field.y; queue.h = field.h;
-    // переполнение и Support — полоса под рамкой, на всю ширину поля
-    spill.x = field.x; spill.w = field.w; spill.y = field.y + field.h + 34; spill.h = 34;
-    support.x = field.x; support.w = field.w; support.y = field.y + field.h + 34; support.h = 26;
+    field.x = left + (availW - field.w) / 2 - (mob ? 0 : 20); field.y = fTop + (availH - field.h) / 2;
+    if (!mob) { queue.x = field.x + field.w + 26; queue.w = Math.max(60, W - queue.x - 24); queue.y = field.y; queue.h = field.h; }
+    const bandY = field.y + field.h + (mob ? 14 : 34);
+    spill.x = field.x; spill.w = field.w; spill.y = bandY; spill.h = mob ? 30 : 34;
+    support.x = field.x; support.w = field.w; support.y = bandY; support.h = mob ? 24 : 26;
     spillPos.clear(); supportPos.clear();
     computeHome();
   }
@@ -163,23 +184,25 @@
     if (!needDraw && !pulsing) return;
     needDraw = false;
     ctx.fillStyle = COLOR.bg; ctx.fillRect(0, 0, W, H);
-    const s = cell * 0.58, useArc = cell >= 6, pulse = pulsing ? 1 + 0.35 * Math.sin(now / 220) : 1;
+    const s = Math.max(1, cell * (cell < 3 ? 0.78 : 0.58)), useArc = cell >= 6, pulse = pulsing ? 1 + 0.35 * Math.sin(now / 220) : 1;
     // рамка лимита
     if (chapter >= 1) {
       ctx.strokeStyle = COLOR.rule; ctx.lineWidth = 1; ctx.strokeRect(field.x - 6, field.y - 6, field.w + 12, field.h + 12);
-      label(`ЛИМИТ · ${int(LIMIT)} МЕСТ`, field.x - 6, field.y - 14, COLOR.muted);
-      if (chapter === 2 || chapter === 3) label(`ОЧЕРЕДЬ · ${int(PIPE)}`, queue.x, field.y - 14, COLOR.amber);
-      if (chapter === 3 && december() > LIMIT) { ctx.fillStyle = COLOR.redSoft; ctx.fillRect(spill.x - 6, spill.y - 6, spill.w + 12, spill.h + 12); label(`СВЕРХ ЛИМИТА · +${int(december() - LIMIT)} · МЕСТА НЕТ`, spill.x - 6, spill.y + spill.h + 20, COLOR.red); }
-      if (chapter === 5) { ctx.strokeStyle = COLOR.rule; ctx.strokeRect(support.x - 6, support.y - 6, support.w + 12, support.h + 12); label('SUPPORT · ВНЕ ЛИМИТА · 40 ПЕРЕВЕДЕНЫ ИЗ HQ', support.x - 6, support.y + support.h + 20, COLOR.muted); }
-      if (chapter === 7) label('УШЛИ ЗА 12 МЕСЯЦЕВ · 285 РУКОВОДИТЕЛЕЙ', spill.x - 6, spill.y + spill.h + 20, COLOR.red);
-    } else label(`HQ · ${int(HQ)} ЧЕЛОВЕК`, field.x - 6, field.y - 14, COLOR.muted);
+      label(`ЛИМИТ · ${int(LIMIT)} МЕСТ`, field.x - (mob ? 0 : 6), field.y - (mob ? 9 : 14), COLOR.muted);
+      if (chapter === 2 || chapter === 3) label(mob ? `ОЧЕРЕДЬ · ${int(PIPE)}` : `ОЧЕРЕДЬ · ${int(PIPE)} ЗАПУЩЕННЫХ НАЙМОВ`, queue.x, queue.y - (mob ? 8 : 14), COLOR.amber);
+      if (chapter === 3 && december() > LIMIT) { ctx.fillStyle = COLOR.redSoft; ctx.fillRect(spill.x - 6, spill.y - 6, spill.w + 12, spill.h + 12); label(`СВЕРХ ЛИМИТА · +${int(december() - LIMIT)} · МЕСТА НЕТ`, spill.x - (mob ? 0 : 6), spill.y + spill.h + (mob ? 12 : 20), COLOR.red); }
+      if (chapter === 5) { ctx.strokeStyle = COLOR.rule; ctx.strokeRect(support.x - 6, support.y - 6, support.w + 12, support.h + 12); label(mob ? 'SUPPORT · 40 ИЗ HQ' : 'SUPPORT · ВНЕ ЛИМИТА · 40 ПЕРЕВЕДЕНЫ ИЗ HQ', support.x - (mob ? 0 : 6), support.y + support.h + (mob ? 12 : 20), COLOR.muted); }
+      if (chapter === 7) label(mob ? 'УШЛИ ЗА ГОД · 285' : 'УШЛИ ЗА 12 МЕСЯЦЕВ · 285 РУКОВОДИТЕЛЕЙ', spill.x - (mob ? 0 : 6), spill.y + spill.h + (mob ? 12 : 20), COLOR.red);
+    } else label(`HQ · ${int(HQ)} ЧЕЛОВЕК`, field.x - (mob ? 0 : 6), field.y - (mob ? 9 : 14), COLOR.muted);
     for (let c = 0; c < buckets.length; c++) {
       const b = buckets[c]; if (!b.length) continue;
-      const hollow = c === C.empty || c === C.amberHollow;
+      // на мелких точках контур не читается: рисуем заливкой, а вакансии приглушаем прозрачностью
+      const hollow = (c === C.empty || c === C.amberHollow) && useArc;
+      const dim = (!useArc && c === C.amberHollow) ? 0.5 : 1;
       ctx.fillStyle = COLOR[c]; ctx.strokeStyle = COLOR[c]; ctx.lineWidth = 1;
       let curA = -1;
       for (let k = 0; k < b.length; k++) {
-        const i = b[k]; const al = a[i]; if (al <= 0.01) continue;
+        const i = b[k]; const al = a[i] * dim; if (al <= 0.01) continue;
         if (al !== curA) { ctx.globalAlpha = al; curA = al; }
         let d = s * sz[i]; if (sz[i] > 1.2 && pulsing) d *= pulse;
         if (hollow) { if (useArc) { ctx.beginPath(); ctx.arc(x[i], y[i], d / 2, 0, 6.2832); ctx.stroke(); } else ctx.strokeRect(x[i] - d / 2, y[i] - d / 2, d, d); }
@@ -194,7 +217,7 @@
 
   function goto(ch) {
     if (ch === chapter) return;
-    const relayout = (ch === 8) !== (chapter === 8);
+    const relayout = (ch === 8) !== (chapter === 8) || needsQueue(ch) !== needsQueue(chapter);
     chapter = ch; pulsing = ch === 4 || ch === 6;
     if (relayout) layout(ch);
     setTargets(ch); startAnim();
@@ -274,15 +297,30 @@
   matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { readTokens(); needDraw = true; });
 
   // прокрутка → глава
-  const io = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) goto(+e.target.dataset.ch); }); }, { threshold: 0, rootMargin: '-42% 0px -42% 0px' });
-  document.querySelectorAll('.step').forEach(s => io.observe(s));
+  let io = null;
+  function observe() {
+    if (io) io.disconnect();
+    io = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) goto(+e.target.dataset.ch); }); },
+      { threshold: 0, rootMargin: mob ? '-62% 0px -28% 0px' : '-42% 0px -42% 0px' });
+    document.querySelectorAll('.step').forEach(s => io.observe(s));
+  }
+  observe();
 
   /* ---------------------------------------------------------------- старт */
   readTokens(); layout();
   for (let i = 0; i < N; i++) { x[i] = homeX[i]; y[i] = homeY[i]; a[i] = i < HQ ? 1 : 0; }
   updateDecision();
   goto(0);
-  window.addEventListener('resize', () => { layout(); setTargets(chapter); for (let i = 0; i < N; i++) { x[i] = tx[i]; y[i] = ty[i]; a[i] = ta[i]; } needDraw = true; });
+  let relayoutTimer = 0;
+  const onResize = () => {
+    const wasMob = mob;
+    layout(); setTargets(chapter);
+    for (let i = 0; i < N; i++) { x[i] = tx[i]; y[i] = ty[i]; a[i] = ta[i]; }
+    needDraw = true;
+    if (wasMob !== mob) observe();
+  };
+  window.addEventListener('resize', () => { clearTimeout(relayoutTimer); relayoutTimer = setTimeout(onResize, 120); });
+  window.addEventListener('orientationchange', () => setTimeout(onResize, 250));
   requestAnimationFrame(loop);
   DEV.initTips();
 })();

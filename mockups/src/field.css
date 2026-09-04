@@ -10,15 +10,16 @@
   --ink-2: #AEB6C6;
   --muted: #7D879A;
   --rule: #232838;
-  --dot: #3A465F;
+  --dot: #333E54;
   --dot-lit: #EEF2F8;
-  --empty: #4A5670;
+  --empty: #7C8CAC;
   --red: #FF4438;
   --red-soft: rgba(255, 68, 56, .16);
   --amber: #FFB84D;
   --blue: #6FA8FF;
   --green: #5FD3A6;
   --cat-1: #7FB2FF; --cat-2: #FFB84D; --cat-3: #5FD3A6; --cat-4: #C79BFF; --cat-5: #FF7A9E;
+  --stage-h: 100vh;
   --sans: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
   --display: "Unbounded", "Golos Text", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -27,7 +28,7 @@
   color-scheme: light;
   --bg: #F2F3F6; --bg-2: #E9EBF0; --panel: rgba(242, 243, 246, .86);
   --ink: #0F131C; --ink-2: #3F4859; --muted: #6E778A; --rule: #D3D7E0;
-  --dot: #B7BFCF; --dot-lit: #0F131C; --empty: #98A2B6;
+  --dot: #C2C9D6; --dot-lit: #0F131C; --empty: #62708C;
   --red: #D5261A; --red-soft: rgba(213, 38, 26, .12);
   --amber: #C27A00; --blue: #2B6FD6; --green: #1E9A6B;
   --cat-1: #2B6FD6; --cat-2: #C27A00; --cat-3: #1E9A6B; --cat-4: #7C4DD8; --cat-5: #D6336C;
@@ -37,7 +38,7 @@
     color-scheme: light;
     --bg: #F2F3F6; --bg-2: #E9EBF0; --panel: rgba(242, 243, 246, .86);
     --ink: #0F131C; --ink-2: #3F4859; --muted: #6E778A; --rule: #D3D7E0;
-    --dot: #B7BFCF; --dot-lit: #0F131C; --empty: #98A2B6;
+    --dot: #C2C9D6; --dot-lit: #0F131C; --empty: #62708C;
     --red: #D5261A; --red-soft: rgba(213, 38, 26, .12);
     --amber: #C27A00; --blue: #2B6FD6; --green: #1E9A6B;
     --cat-1: #2B6FD6; --cat-2: #C27A00; --cat-3: #1E9A6B; --cat-4: #7C4DD8; --cat-5: #D6336C;
@@ -51,7 +52,7 @@ h1, h2, h3, p { margin: 0; }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 
 /* ---------------------------------------------------------------- сцена */
-#stage { position: fixed; inset: 0; z-index: 0; display: block; width: 100vw; height: 100vh; }
+#stage { position: fixed; top: 0; left: 0; z-index: 0; display: block; width: 100vw; height: 100vh; }
 .top { position: fixed; top: 0; left: 0; right: 0; z-index: 3; display: flex; align-items: center; gap: 18px; padding: 14px 28px; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); pointer-events: none; }
 .top b { color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .02em; text-transform: none; }
 .top .sp { flex: 1; }
@@ -146,11 +147,30 @@ main { position: relative; z-index: 1; padding: 0 0 20vh; }
 .micro .main { fill: none; stroke: var(--muted); stroke-width: 1.4; } .micro .end { fill: var(--ink); }
 .tip { position: fixed; z-index: 100; max-width: 300px; background: var(--ink); color: var(--bg); font-family: var(--mono); font-size: 11px; line-height: 1.4; padding: 7px 10px; pointer-events: none; }
 
+/* ---------------------------------------------------------------- мобильный: график сверху, карточки под ним
+   Холст закреплён в верхней половине экрана и лежит НАД карточками по z-оси,
+   поэтому текст уезжает под график, а не закрывает его. */
 @media (max-width: 900px) {
-  .step { padding: 10vh 5vw; }
-  .card, .card.wide { width: 100%; }
-  .big { font-size: 60px; }
-  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :root { --stage-h: 54svh; }
+  #stage { height: var(--stage-h); z-index: 2; }
+  .top { z-index: 4; padding: 10px 14px; gap: 10px; }
+  .top .mid { display: none; }
+  .top b { font-size: 12px; }
+  .top .theme { padding: 5px 8px; }
   .progress { display: none; }
+  main { padding-bottom: 12vh; }
+  .step { min-height: 100vh; padding: calc(var(--stage-h) + 14px) 14px 6vh; align-items: safe center; }
+  .card, .card.wide { width: 100%; padding: 20px 18px 18px; }
+  .big { font-size: 54px; }
+  .say { font-size: 18px; }
+  .txt { font-size: 14px; }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .result { grid-template-columns: 1fr; }
+  .result .n { font-size: 40px; }
+  .colophon { padding: 0 14px 32px; }
+}
+@media (max-width: 420px) {
+  .big { font-size: 44px; }
+  .metrics { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

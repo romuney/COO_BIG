@@ -1,5 +1,9 @@
 /* variants.js — три альтернативных подачи первой страницы на одних и тех же данных */
 (() => {
+  /* Без viewport-меты телефон верстает страницу в 980 px и всё уезжает.
+     Артефакт-обёртка мету добавляет, но самодостаточный файл открывают и напрямую. */
+  (() => { if (!document.querySelector('meta[name="viewport"]')) { const m = document.createElement('meta'); m.name = 'viewport'; m.content = 'width=device-width, initial-scale=1, viewport-fit=cover'; document.head.appendChild(m); } })();
+
   const D = window.DATA, M = D.meta, T = D.control_panel, S = D.summary;
   const { fmtInt, fmtNum, fmtPct, fmtVal, fmtDelta, esc } = CH;
   const byId = Object.fromEntries(T.map(t => [t.id, t]));
@@ -80,7 +84,7 @@
     ];
     const rows = T.map(t => `<tr><td class="name">${esc(t.title)}</td><td>${val(t)}</td><td class="${deltaCls(t.delta_mom, t.good)}">${fmtDelta(t.delta_mom, t.fmt, t.decimals)}</td><td class="${deltaCls(t.delta_yoy, t.good)}">${fmtDelta(t.delta_yoy, t.fmt, t.decimals)}</td><td>${t.delta_plan != null ? fmtDelta(t.delta_plan, t.fmt, t.decimals) : (t.target != null ? 'цель ' + fmtVal(t.target, t.fmt, 0) : '—')}</td><td>${t.status !== 'none' ? chip(t.status, STATUS_WORD[t.status]) : ''}</td><td class="note">${esc(t.owner)}</td></tr>`).join('');
     return `${pageHead(p, S.headline, 'Записка читается молча в начале встречи (по правилу Amazon — около трёх минут на страницу). Ниже — вопросы, которые директор задаст, и ответы, которые владельцы написали заранее. Все цифры продублированы таблицей в приложении.')}
-      <div class="rail-layout" style="grid-template-columns: minmax(0, 1fr) 380px">
+      <div class="rail-layout flip-narrow">
         <div class="memo">${paras.map(x => `<p>${x}</p>`).join('')}</div>
         <div class="stack">
           ${card('Вопросы и ответы владельцев', `<dl class="faq">${faq.map(([q, a, o]) => `<dt>${esc(q)}</dt><dd>${esc(a)}<span class="a">— ${esc(o)}</span></dd>`).join('')}</dl>`, 'FAQ по правилу 6-pager: спорные места объясняются заранее')}
@@ -143,7 +147,7 @@
       ['Что берём в основной макет', 'форму графика «2026 против 2025 + план» в плитках; полный дек — как приложение', 'абзацы «что произошло» и FAQ-вопросы на стр. 01, комментарии на разделах', 'блок «Сигналы месяца» на стр. 01, статусы и вопросы в плитках'],
     ];
     return `${pageHead(p, 'Рекомендация: сигналы + нарратив на первой странице, плитки на второй, дек — в приложении', 'Ни один формат не выигрывает по всем критериям. Основной макет собран как комбинация: страница 01 — сигналы (C) и три абзаца (B), страница 02 — плитки одной формы (A с цветом и вопросами), разделы 03–10 — по запросу, слопы — отдельной страницей.')}
-      ${card('Сравнение по критериям', `<table class="cmp"><thead><tr><th>Критерий</th><th>A · Amazon-дек</th><th>B · Записка</th><th>C · Сигналы</th></tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`)}
+      ${card('Сравнение по критериям', `<div class="tbl-wrap"><table class="cmp"><thead><tr><th>Критерий</th><th>A · Amazon-дек</th><th>B · Записка</th><th>C · Сигналы</th></tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
       <div class="grid g2">
         ${card('Что решить после просмотра', `<ul class="list arrows"><li>Первая страница: сигналы + текст (как в основном макете) или чистый дек?</li><li>Сколько метрик на панели — 10 или 15? Какие пять «спотлайт»?</li><li>Пороги для красного и жёлтого: правило (план ± X, г/г ± Y) или экспертная оценка аналитика?</li><li>Нужен ли FAQ с ответами владельцев — и готовы ли владельцы писать его до выпуска?</li><li>Печатаем ли PDF — тогда все страницы верстаются в A4 landscape</li></ul>`)}
         ${card('Что это меняет в данных', `<ul class="list"><li>Для всех вариантов: месячные ряды с января 2025 по каждой метрике панели, план или цель на 2026, владелец</li><li>Для A: те же ряды за 2024 (прошлый год для левой панели «6 месяцев»)</li><li>Для C: пороги статусов в справочнике метрик, а не в голове аналитика</li><li>Для B: причинные срезы (причины оттока, сегменты) — иначе текст не о чем писать</li></ul>`)}

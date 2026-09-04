@@ -104,8 +104,8 @@ main { max-width: 1300px; margin: 0 auto; padding: 0 44px 80px; }
 .hero-pair .one { font-family: var(--display); font-weight: 900; font-size: 96px; line-height: .86; letter-spacing: -.035em; }
 .hero-pair .vs { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); align-self: center; }
 .hero-pair .two { font-family: var(--display); font-weight: 900; font-size: 96px; line-height: .86; letter-spacing: -.035em; color: var(--red); }
-.hero-legend { display: flex; gap: 26px; margin-top: 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.hero-legend span { flex: 0 0 auto; }
+.hero-legend { display: flex; flex-wrap: wrap; gap: 5px 22px; margin-top: 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.hero-legend span { flex: 0 1 auto; min-width: 0; }
 
 /* ============================================================ сигналы */
 .sig-head { display: flex; align-items: baseline; gap: 14px; border-top: 2px solid var(--rule-hard); padding-top: 12px; margin-bottom: 4px; }
@@ -260,7 +260,16 @@ main { max-width: 1300px; margin: 0 auto; padding: 0 44px 80px; }
   .quiet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 860px) {
-  main { padding: 0 20px 50px; }
+  main { padding: 0 16px 50px; }
+  /* таблица панели шире экрана: даём ей собственную прокрутку, а не ломаем страницу */
+  .panel-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding: 0 16px; }
+  .panel-tbl { min-width: 560px; }
+  .find-ask { grid-template-columns: 26px 1fr; }
+  .find-ask .o { grid-column: 2; }
+  .dec { grid-template-columns: 1fr; }
+  .dec .when { justify-self: start; }
+  .hero-pair .one, .hero-pair .two { font-size: 64px; }
+  .quiet-row { grid-template-columns: minmax(0, 1fr) 56px; }
   .signals, .asks, .quiet-grid, .find-foot { grid-template-columns: 1fr; }
   .hero-num { font-size: 66px; }
   .spread-title { font-size: 34px; }

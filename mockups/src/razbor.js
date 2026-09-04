@@ -1,5 +1,9 @@
 /* razbor.js — три разворота: что горит, чего вы не видели, всё остальное. */
 (() => {
+  /* Без viewport-меты телефон верстает страницу в 980 px и всё уезжает.
+     Артефакт-обёртка мету добавляет, но самодостаточный файл открывают и напрямую. */
+  (() => { if (!document.querySelector('meta[name="viewport"]')) { const m = document.createElement('meta'); m.name = 'viewport'; m.content = 'width=device-width, initial-scale=1, viewport-fit=cover'; document.head.appendChild(m); } })();
+
   const D = window.DATA, M = D.meta, T = D.control_panel, S = D.summary, F = D.findings, K = D.stakes;
   const { int, num, esc, plural } = DEV;
   const byId = Object.fromEntries(T.map(t => [t.id, t]));
@@ -182,10 +186,10 @@
           <p class="spread-sub">Пятнадцать метрик здоровья организации: значение, изменение к прошлому месяцу и к прошлому году, отношение к плану, двадцать месяцев динамики и тот, кто за метрику отвечает. Ниже — то, что не менялось: это тоже результат.</p></div>
         <div class="spread-meta">${T.length} метрик<br>20 месяцев истории<br>детали — по ссылкам</div>
       </div>
-      <table class="panel-tbl">
+      <div class="panel-tbl-wrap"><table class="panel-tbl">
         <thead><tr><th>Метрика</th><th>Август</th><th>м/м</th><th>г/г</th><th>план или цель</th><th>дин. 25–26</th><th>отвечает</th></tr></thead>
         <tbody>${body}</tbody>
-      </table>
+      </table></div>
       <div class="quiet">
         <h3>Тихо: здесь ничего не произошло</h3>
         <div class="quiet-grid">${quiet}</div>
