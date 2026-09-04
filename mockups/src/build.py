@@ -49,7 +49,7 @@ def font_css():
 
 def build(template, out, app):
     html = (SRC / "pages" / template).read_text(encoding="utf-8")
-    css_name = "razbor.css" if "razbor" in app else "styles.css"
+    css_name = "razbor.css" if "razbor" in app else ("field.css" if "field" in app else "styles.css")
     html = html.replace("__FONTS__", font_css())
     html = html.replace("__CSS__", (SRC / css_name).read_text(encoding="utf-8"))
     html = html.replace("__DATA__", inline_json(DATA))
@@ -68,3 +68,6 @@ if __name__ == "__main__":
     razbor = SRC / "pages" / "razbor.html"
     if razbor.exists():
         build("razbor.html", "razbor_2026-08.html", "razbor.js")
+    field = SRC / "pages" / "field.html"
+    if field.exists():
+        build("field.html", "field_2026-08.html", "field.js")

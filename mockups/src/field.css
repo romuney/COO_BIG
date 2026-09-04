@@ -1,0 +1,156 @@
+/* ============================================================ ПОЛЕ — интерактивная история месяца
+   Каждый человек — точка. Все графики — это точки, которые переставляются.
+   Тёмная сцена нужна, чтобы точки светились; светлая тема — полноценная, не инверсия. */
+:root {
+  color-scheme: dark;
+  --bg: #0B0D12;
+  --bg-2: #10131B;
+  --panel: rgba(16, 19, 27, .82);
+  --ink: #E9EDF5;
+  --ink-2: #AEB6C6;
+  --muted: #7D879A;
+  --rule: #232838;
+  --dot: #3A465F;
+  --dot-lit: #EEF2F8;
+  --empty: #4A5670;
+  --red: #FF4438;
+  --red-soft: rgba(255, 68, 56, .16);
+  --amber: #FFB84D;
+  --blue: #6FA8FF;
+  --green: #5FD3A6;
+  --cat-1: #7FB2FF; --cat-2: #FFB84D; --cat-3: #5FD3A6; --cat-4: #C79BFF; --cat-5: #FF7A9E;
+  --sans: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #F2F3F6; --bg-2: #E9EBF0; --panel: rgba(242, 243, 246, .86);
+  --ink: #0F131C; --ink-2: #3F4859; --muted: #6E778A; --rule: #D3D7E0;
+  --dot: #B7BFCF; --dot-lit: #0F131C; --empty: #98A2B6;
+  --red: #D5261A; --red-soft: rgba(213, 38, 26, .12);
+  --amber: #C27A00; --blue: #2B6FD6; --green: #1E9A6B;
+  --cat-1: #2B6FD6; --cat-2: #C27A00; --cat-3: #1E9A6B; --cat-4: #7C4DD8; --cat-5: #D6336C;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #F2F3F6; --bg-2: #E9EBF0; --panel: rgba(242, 243, 246, .86);
+    --ink: #0F131C; --ink-2: #3F4859; --muted: #6E778A; --rule: #D3D7E0;
+    --dot: #B7BFCF; --dot-lit: #0F131C; --empty: #98A2B6;
+    --red: #D5261A; --red-soft: rgba(213, 38, 26, .12);
+    --amber: #C27A00; --blue: #2B6FD6; --green: #1E9A6B;
+    --cat-1: #2B6FD6; --cat-2: #C27A00; --cat-3: #1E9A6B; --cat-4: #7C4DD8; --cat-5: #D6336C;
+  }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55; overflow-x: hidden; }
+h1, h2, h3, p { margin: 0; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+/* ---------------------------------------------------------------- сцена */
+#stage { position: fixed; inset: 0; z-index: 0; display: block; width: 100vw; height: 100vh; }
+.top { position: fixed; top: 0; left: 0; right: 0; z-index: 3; display: flex; align-items: center; gap: 18px; padding: 14px 28px; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); pointer-events: none; }
+.top b { color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .02em; text-transform: none; }
+.top .sp { flex: 1; }
+.top .theme { pointer-events: auto; border: 1px solid var(--rule); background: var(--panel); color: var(--ink-2); font: inherit; letter-spacing: .1em; padding: 6px 10px; cursor: pointer; border-radius: 3px; }
+.progress { position: fixed; left: 28px; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; flex-direction: column; gap: 10px; }
+.progress a { width: 8px; height: 8px; border-radius: 50%; background: var(--rule); display: block; transition: background .3s, transform .3s; }
+.progress a.on { background: var(--ink); transform: scale(1.4); }
+
+/* ---------------------------------------------------------------- шаги */
+main { position: relative; z-index: 1; padding: 0 0 20vh; }
+.step { min-height: 100vh; display: flex; align-items: safe center; padding: 76px 0 10vh 8vw; }
+.card { width: min(440px, 88vw); background: var(--panel); backdrop-filter: blur(10px); border: 1px solid var(--rule); border-radius: 6px; padding: 26px 28px 22px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.card.wide { width: min(640px, 92vw); }
+.eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.eyebrow.hot { color: var(--red); }
+.eyebrow.warm { color: var(--amber); }
+.big { font-family: var(--display); font-weight: 900; font-size: 84px; line-height: .9; letter-spacing: -.035em; margin-top: 12px; }
+.big.hot { color: var(--red); }
+.big.warm { color: var(--amber); }
+.big small { font-family: var(--mono); font-weight: 400; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 10px; }
+.say { font-weight: 600; font-size: 21px; line-height: 1.28; margin-top: 16px; text-wrap: balance; }
+.txt { color: var(--ink-2); font-size: 14.5px; line-height: 1.6; margin-top: 12px; text-wrap: pretty; }
+.foot { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule); display: grid; gap: 8px; }
+.foot .l { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+.foot .v { font-size: 12px; line-height: 1.5; color: var(--ink-2); }
+.foot .unknown { background: var(--bg-2); margin: 0 -12px; padding: 8px 12px; border-radius: 4px; }
+.ask { margin-top: 14px; display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: baseline; border-top: 2px solid var(--red); padding-top: 12px; }
+.ask .q { font-family: var(--display); font-weight: 900; font-size: 18px; color: var(--red); }
+.ask .t { font-weight: 600; font-size: 15px; line-height: 1.35; }
+.ask .o { grid-column: 2; font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; background: var(--dot); }
+.legend i.lit { background: var(--dot-lit); } .legend i.red { background: var(--red); } .legend i.amber { background: var(--amber); }
+.legend i.empty { background: none; border: 1px solid var(--empty); } .legend i.blue { background: var(--blue); }
+.legend i.c1 { background: var(--cat-1); } .legend i.c2 { background: var(--cat-2); } .legend i.c3 { background: var(--cat-3); } .legend i.c4 { background: var(--cat-4); } .legend i.c5 { background: var(--cat-5); }
+.hint { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 14px; }
+
+/* ---------------------------------------------------------------- решение */
+.ctl { margin-top: 18px; display: grid; gap: 14px; }
+.ctl label { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.ctl label b { font-family: var(--display); font-weight: 700; font-size: 18px; color: var(--ink); letter-spacing: -.01em; text-transform: none; }
+.ctl input[type=range] { width: 100%; margin: 6px 0 0; accent-color: var(--amber); cursor: pointer; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.presets button { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; background: none; color: var(--ink-2); border: 1px solid var(--rule); padding: 6px 10px; border-radius: 3px; cursor: pointer; }
+.presets button:hover, .presets button.on { border-color: var(--amber); color: var(--ink); }
+.result { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; align-items: baseline; }
+.result .n { font-family: var(--display); font-weight: 900; font-size: 46px; line-height: .95; letter-spacing: -.03em; }
+.result .n.hot { color: var(--red); }
+.result .n.ok { color: var(--green); }
+.result .d { font-family: var(--mono); font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+.result .d b { color: var(--ink); }
+.result .verdict { grid-column: 1 / -1; font-weight: 600; font-size: 15px; line-height: 1.35; margin-top: 4px; }
+
+/* ---------------------------------------------------------------- панель */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chips button { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; background: none; color: var(--ink-2); border: 1px solid var(--rule); padding: 6px 10px; border-radius: 3px; cursor: pointer; }
+.chips button.on { border-color: var(--ink); color: var(--ink); }
+.metrics { margin-top: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; }
+.m { border-top: 1px solid var(--rule); padding-top: 8px; cursor: default; }
+.m .t { font-size: 11.5px; line-height: 1.3; color: var(--ink-2); min-height: 2.6em; }
+.m .v { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: -.01em; margin-top: 4px; display: flex; align-items: baseline; gap: 8px; }
+.m .v.hot { color: var(--red); } .m .v.ok { color: var(--green); }
+.m .v small { font-family: var(--mono); font-weight: 400; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; }
+.m .s { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .04em; margin-top: 2px; line-height: 1.4; }
+.m .dv { margin-top: 4px; }
+
+/* вопросы */
+.qs { margin-top: 10px; display: grid; gap: 0; }
+.qrow { display: grid; grid-template-columns: 30px 1fr; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.qrow .n { font-family: var(--display); font-weight: 900; font-size: 18px; color: var(--red); line-height: 1; }
+.qrow .t { font-weight: 600; font-size: 15px; line-height: 1.32; }
+.qrow .o { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.dec { margin-top: 14px; border: 1px solid var(--rule); padding: 12px 14px; border-radius: 4px; display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; font-size: 13.5px; align-items: baseline; }
+.dec .w { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); white-space: nowrap; }
+.dec .who { grid-column: 1 / -1; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+.colophon { position: relative; z-index: 1; padding: 0 8vw 40px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em; color: var(--muted); line-height: 1.7; max-width: 720px; }
+
+/* ---------------------------------------------------------------- svg-приёмы (devices.js) */
+.dv { display: block; overflow: visible; font-family: var(--mono); }
+.dv text { fill: var(--ink-2); }
+.streak .bar { fill: var(--dot); } .streak .bar.hot { fill: var(--red); }
+.streak .cmp { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 2; }
+.streak .lab { fill: var(--muted); font-size: 9.5px; }
+.streak .runline { stroke: var(--red); stroke-width: 1.5; } .streak .runlab { fill: var(--red); font-size: 10px; font-weight: 600; letter-spacing: .04em; }
+.bigline .main { fill: none; stroke: var(--red); stroke-width: 2.5; stroke-linejoin: round; }
+.bigline .cmp { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.bigline .band { fill: var(--bg-2); }
+.bigline .start { fill: var(--muted); } .bigline .startlab { fill: var(--muted); font-size: 11px; }
+.bigline .end { fill: var(--red); } .bigline .endlab { fill: var(--red); font-size: 13px; font-weight: 600; font-family: var(--display); }
+.bigline .cmplab { fill: var(--muted); font-size: 11px; } .bigline .lab { fill: var(--muted); font-size: 9.5px; }
+.micro .main { fill: none; stroke: var(--muted); stroke-width: 1.4; } .micro .end { fill: var(--ink); }
+.tip { position: fixed; z-index: 100; max-width: 300px; background: var(--ink); color: var(--bg); font-family: var(--mono); font-size: 11px; line-height: 1.4; padding: 7px 10px; pointer-events: none; }
+
+@media (max-width: 900px) {
+  .step { padding: 10vh 5vw; }
+  .card, .card.wide { width: 100%; }
+  .big { font-size: 60px; }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .progress { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
