@@ -49,12 +49,15 @@ def font_css():
 
 def build(template, out, app):
     html = (SRC / "pages" / template).read_text(encoding="utf-8")
-    css_name = "razbor.css" if "razbor" in app else ("field.css" if "field" in app else "styles.css")
+    css_map = {"razbor": "razbor.css", "field": "field.css",
+               "m_stories": "m_stories.css", "m_feed": "m_feed.css", "m_pult": "m_pult.css"}
+    css_name = next((v for k, v in css_map.items() if k in app), "styles.css")
     html = html.replace("__FONTS__", font_css())
     html = html.replace("__CSS__", (SRC / css_name).read_text(encoding="utf-8"))
     html = html.replace("__DATA__", inline_json(DATA))
     html = html.replace("__CHARTS__", (SRC / "lib" / "charts.js").read_text(encoding="utf-8"))
     html = html.replace("__DEVICES__", (SRC / "lib" / "devices.js").read_text(encoding="utf-8"))
+    html = html.replace("__MOBILE__", (SRC / "lib" / "mobile.js").read_text(encoding="utf-8"))
     html = html.replace("__APP__", (SRC / app).read_text(encoding="utf-8"))
     DIST.mkdir(parents=True, exist_ok=True)
     (DIST / out).write_text(html, encoding="utf-8")
@@ -71,3 +74,6 @@ if __name__ == "__main__":
     field = SRC / "pages" / "field.html"
     if field.exists():
         build("field.html", "field_2026-08.html", "field.js")
+    for name in ("m_stories", "m_feed", "m_pult"):
+        if (SRC / "pages" / f"{name}.html").exists():
+            build(f"{name}.html", f"{name}_2026-08.html", f"{name}.js")

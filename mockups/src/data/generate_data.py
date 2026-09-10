@@ -1014,3 +1014,7 @@ data = {
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
 print(f"written {OUT} ({OUT.stat().st_size // 1024} KB)")
+
+# блоки «Ресурсообеспеченность», «Цели» и полный каталог метрик — в отдельном модуле
+import generate_goals  # noqa: E402
+print("catalog metrics:", generate_goals.build(OUT))
