@@ -7,7 +7,7 @@
 
   /* ---------------------------------------------------------------- модель решения */
   const HQ = 22930, LIMIT = 23500, OTHER = 70;
-  const model = { hires: 1232, leave: 900 };
+  const model = { hires: 1230, leave: 900 };
   const dec = () => HQ - model.leave + OTHER + model.hires;
 
   const note = (l, v) => `<div class="note"><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div></div>`;
@@ -49,9 +49,9 @@
       <p class="say" style="margin-top:0">Сколько нанять до декабря?</p>
       <div class="ctl">
         <div class="lab"><span>внешний найм за сен–дек</span><b id="hv">1 232</b></div>
-        <input type="range" id="hires" min="0" max="2262" step="10" value="1232" aria-label="Внешний найм за сентябрь–декабрь">
+        <input type="range" id="hires" min="0" max="2262" step="10" value="1230" aria-label="Внешний найм за сентябрь–декабрь">
         <div class="chips">
-          <button type="button" data-h="1232">по темпу</button>
+          <button type="button" data-h="1230">по темпу</button>
           <button type="button" data-h="1520">по воронке</button>
           <button type="button" data-h="1400">впритык</button>
         </div>
@@ -180,7 +180,9 @@
     document.getElementById('prev').disabled = i === 0;
     const nx = document.getElementById('next');
     nx.textContent = i === CARDS.length - 1 ? 'В начало' : 'Дальше';
-    document.getElementById('hint').textContent = c.interactive ? 'Двигайте ползунок' : (i === 0 ? 'Нажмите справа' : 'Свайп или касание');
+    document.getElementById('hint').textContent = c.interactive ? 'Двигайте ползунок · листать кнопкой' : (i === 0 ? 'Нажмите справа' : 'Свайп или касание');
+    // на интерактивной карточке зоны касания выключаем: иначе они перехватывают ползунки и кнопки
+    document.querySelectorAll('.tap').forEach(t => { t.style.pointerEvents = c.interactive ? 'none' : ''; });
     if (c.interactive) bindDecision();
   }
   const go = d => { i = (i + d + CARDS.length) % CARDS.length; render(); };
