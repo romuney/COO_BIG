@@ -47,14 +47,14 @@ def font_css():
     return "\n".join(out)
 
 
-def build(template, out, app):
+def build(template, out, app, data=None):
     html = (SRC / "pages" / template).read_text(encoding="utf-8")
-    css_map = {"razbor": "razbor.css", "field": "field.css",
-               "m_stories": "m_stories.css", "m_feed": "m_feed.css", "m_pult": "m_pult.css"}
+    css_map = {"razbor": "razbor.css", "field": "field.css", "m_stories": "m_stories.css",
+               "m_feed": "m_feed.css", "m_pult": "m_pult.css", "m_coohub": "m_coohub.css"}
     css_name = next((v for k, v in css_map.items() if k in app), "styles.css")
     html = html.replace("__FONTS__", font_css())
     html = html.replace("__CSS__", (SRC / css_name).read_text(encoding="utf-8"))
-    html = html.replace("__DATA__", inline_json(DATA))
+    html = html.replace("__DATA__", inline_json(data or DATA))
     html = html.replace("__CHARTS__", (SRC / "lib" / "charts.js").read_text(encoding="utf-8"))
     html = html.replace("__DEVICES__", (SRC / "lib" / "devices.js").read_text(encoding="utf-8"))
     html = html.replace("__MOBILE__", (SRC / "lib" / "mobile.js").read_text(encoding="utf-8"))
@@ -77,3 +77,6 @@ if __name__ == "__main__":
     for name in ("m_stories", "m_feed", "m_pult"):
         if (SRC / "pages" / f"{name}.html").exists():
             build(f"{name}.html", f"{name}_2026-08.html", f"{name}.js")
+    if (SRC / "pages" / "m_coohub.html").exists():
+        build("m_coohub.html", "m_coohub_2026-09.html", "m_coohub.js",
+              data=ROOT / "data" / "coo_hub_2026-09.json")

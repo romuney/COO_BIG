@@ -344,7 +344,28 @@ const MB = (() => {
       <div class="mb-dots-ax"><span>${num(mn, 0)}${o.suffix || ''}</span>${o.target != null && tgt > 12 && tgt < 78 ? `<span class="t" style="left:${tgt.toFixed(1)}%">цель ${num(o.target, 0)}${o.suffix || ''}</span>` : ''}<span>${num(mx, 0)}${o.suffix || ''}</span></div></div>`;
   }
 
-  return { int, num, esc, val, delta, dcls, ring, spark, meter, funnel, waffle, bars, rows, fork, dual, dots };
+  /* ---------------------------------------------------------------- шкала порогов
+     Показывает, где значение стоит относительно красного и жёлтого порогов витрины.
+     Зоны рисуются в направлении threshold_direction: up — плохо слева, down — плохо справа. */
+  function zones(o) {
+    const W = o.width || 320, H = 46, y = 12, bh = 12;
+    const mn = o.min, mx = o.max, P = v => Math.max(0, Math.min(1, (v - mn) / (mx - mn)));
+    const red = P(o.red), yel = P(o.yellow), val = P(o.value);
+    const up = o.dir === 'up';
+    const seg = (x1, x2, cls) => x2 > x1
+      ? `<rect class="z ${cls}" x="${(x1 * W).toFixed(1)}" y="${y}" width="${((x2 - x1) * W).toFixed(1)}" height="${bh}"/>` : '';
+    let s = `<svg class="mb zones" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(o.aria || '')}">`;
+    if (up) { s += seg(0, red, 'bad') + seg(red, yel, 'warn') + seg(yel, 1, 'good'); }
+    else { s += seg(0, yel, 'good') + seg(yel, red, 'warn') + seg(red, 1, 'bad'); }
+    s += `<rect class="mk" x="${(val * W - 1.5).toFixed(1)}" y="${y - 7}" width="3" height="${bh + 14}" rx="1.5"/>`;
+    s += `<text class="t" x="${(val * W).toFixed(1)}" y="${y - 11}" text-anchor="${val > 0.82 ? 'end' : val < 0.18 ? 'start' : 'middle'}">${esc(o.label || '')}</text>`;
+    const tx = (p, t) => `<text class="a" x="${(p * W).toFixed(1)}" y="${y + bh + 14}" text-anchor="middle">${esc(t)}</text>`;
+    s += tx(red, o.redLabel) + tx(yel, o.yellowLabel);
+    s += '</svg>';
+    return s;
+  }
+
+  return { int, num, esc, val, delta, dcls, ring, spark, meter, funnel, waffle, bars, rows, fork, dual, dots, zones };
 })();
 </script>
 <script>/* m_stories.js — «Сводка»: тринадцать полноэкранных карточек, переход касанием и свайпом. */
