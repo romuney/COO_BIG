@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "product": "COO Hub",
+    "title": "COO Hub · Сентябрь 2026",
+    "period_label": "Сентябрь 2026",
+    "business_month": "2026-09-01",
+    "actual_data_dt": "2026-10-03",
+    "aggr_type": "M",
+    "year": 2026,
+    "months": ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"],
+    "n_fact": 9,
+    "root": "u0",
+    "source": "Витрина COO Hub, Greenplum",
+    "owner": "Офис исполнительного директора · BI-аналитика",
+    "disclaimer": "Пример формата: цифры выдуманы.",
+    "real": false
+  },
+  "blocks": {
+    "goals": "Цели и достижения",
+    "hr": "Человеческий капитал"
+  },
+  "block_order": ["goals", "hr"],
+  "units": [
+    {
+      "functional_unit_rk": "u0",
+      "functional_unit_nm": "Все продукты",
+      "lvl_unit": 1,
+      "depth": 1,
+      "parent_functional_unit_rk": null,
+      "headcount": 300,
+      "leaf": false
+    },
+    {
+      "functional_unit_rk": "p1",
+      "functional_unit_nm": "Платежи",
+      "lvl_unit": 2,
+      "depth": 2,
+      "parent_functional_unit_rk": "u0",
+      "headcount": 180,
+      "leaf": true
+    },
+    {
+      "functional_unit_rk": "p2",
+      "functional_unit_nm": "Кредиты",
+      "lvl_unit": 2,
+      "depth": 2,
+      "parent_functional_unit_rk": "u0",
+      "headcount": 120,
+      "leaf": true
+    }
+  ],
+  "metrics": [
+    {
+      "eng": "okr_linkage",
+      "name": "Связанность",
+      "block": "goals",
+      "type": 2,
+      "vt": "perc",
+      "change": "up",
+      "red": 40,
+      "yellow": 60,
+      "tdir": "up",
+      "ttype": "value",
+      "threshold_scope": "any_level",
+      "desc": "Цели с указанной родительской целью уровнем выше / цели юнита",
+      "cta": "Проставить связь с целью уровнем выше или объяснить, почему её нет",
+      "unit_num": "целей связаны",
+      "unit_den": "целей",
+      "gap_tpl": "связать ещё {n} целей"
+    },
+    {
+      "eng": "open_vacancies_hq",
+      "name": "Открыто вакансий HQ",
+      "block": "hr",
+      "type": 1,
+      "vt": "int",
+      "change": "down",
+      "red": 10,
+      "yellow": 5,
+      "tdir": "down",
+      "ttype": "value",
+      "threshold_scope": "unit_level",
+      "desc": "Открытые вакансии сегмента HQ на конец месяца",
+      "cta": "Пересмотреть приоритет вакансий: очередь выше нормы",
+      "unit_num": "вакансий",
+      "unit_den": "",
+      "gap_tpl": ""
+    }
+  ],
+  "facts": {
+    "u0": {
+      "okr_linkage": {
+        "value_final": 41.67,
+        "value_numerator": 25,
+        "value_denominator": 60,
+        "mom_value_final": -1.0,
+        "yoy_value_final": null,
+        "yoy_known": false,
+        "cur": [56.67, 54.67, 51.67, 49.33, 46.67, 45, 44.33, 42.67, 41.67],
+        "prev": [],
+        "cuts": null
+      },
+      "open_vacancies_hq": {
+        "value_final": 20,
+        "value_numerator": null,
+        "value_denominator": null,
+        "mom_value_final": 0,
+        "yoy_value_final": 3,
+        "yoy_known": true,
+        "cur": [18, 17, 18, 18, 18, 19, 19, 20, 20],
+        "prev": [19, 18, 19, 18, 18, 18, 18, 17, 17, 18, 18, 18],
+        "cuts": null
+      }
+    },
+    "p1": {
+      "okr_linkage": {
+        "value_final": 45,
+        "value_numerator": 18,
+        "value_denominator": 40,
+        "mom_value_final": -1,
+        "yoy_value_final": null,
+        "yoy_known": false,
+        "cur": [60, 58, 55, 52, 50, 48, 47.5, 46, 45],
+        "prev": [],
+        "cuts": null
+      },
+      "open_vacancies_hq": {
+        "value_final": 7,
+        "value_numerator": null,
+        "value_denominator": null,
+        "mom_value_final": -1,
+        "yoy_value_final": -4,
+        "yoy_known": true,
+        "cur": [12, 11, 11, 10, 9, 9, 8, 8, 7],
+        "prev": [15, 14, 14, 13, 13, 12, 12, 11, 11, 12, 12, 12],
+        "cuts": {
+          "oper": {
+            "label": "Сегмент",
+            "parts": [
+              {"name": "HQ", "num": 5, "den": 0},
+              {"name": "Line", "num": 2, "den": 0},
+              {"name": "Support", "num": 0, "den": 0}
+            ]
+          }
+        }
+      }
+    },
+    "p2": {
+      "okr_linkage": {
+        "value_final": 35,
+        "value_numerator": 7,
+        "value_denominator": 20,
+        "mom_value_final": -1,
+        "yoy_value_final": null,
+        "yoy_known": false,
+        "cur": [50, 48, 45, 44, 40, 39, 38, 36, 35],
+        "prev": [],
+        "cuts": null
+      },
+      "open_vacancies_hq": {
+        "value_final": 13,
+        "value_numerator": null,
+        "value_denominator": null,
+        "mom_value_final": 1,
+        "yoy_value_final": 7,
+        "yoy_known": true,
+        "cur": [6, 6, 7, 8, 9, 10, 11, 12, 13],
+        "prev": [4, 4, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6],
+        "cuts": null
+      }
+    }
+  }
+}

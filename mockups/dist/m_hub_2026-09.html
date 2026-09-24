@@ -534,6 +534,35 @@ table.f td:first-child { color: var(--accent); white-space: nowrap; padding-righ
 (() => {
   (() => { if (!document.querySelector('meta[name="viewport"]')) { const m = document.createElement('meta'); m.name = 'viewport'; m.content = 'width=device-width, initial-scale=1, viewport-fit=cover'; document.head.appendChild(m); } })();
 
+  // шаблон без данных или данные не того формата — не пустой экран, а понятный список, что не так (формат — DATA_FORMAT.md)
+  const PROBLEMS = (() => {
+    const D = window.DATA, out = [], obj = x => x && typeof x === 'object' && !Array.isArray(x);
+    if (!obj(D)) return ['Данные не встроены: на месте метки данных в шаблоне должен стоять JSON с данными страницы (формат — DATA_FORMAT.md).'];
+    if (!obj(D.meta)) out.push('нет объекта meta');
+    if (!obj(D.blocks)) out.push('нет объекта blocks');
+    if (!obj(D.facts)) out.push('нет объекта facts');
+    ['units', 'metrics'].forEach(k => { if (!Array.isArray(D[k]) || !D[k].length) out.push(`${k} — должен быть непустой массив`); });
+    if (out.length) return out;
+    const need = (o, keys, where) => keys.forEach(k => { if (!obj(o) || !(k in o)) out.push(`${where}: нет поля ${k}`); });
+    need(D.meta, ['period_label', 'business_month', 'actual_data_dt', 'months', 'source', 'disclaimer'], 'meta');
+    D.units.forEach((u, i) => need(u, ['functional_unit_rk', 'functional_unit_nm', 'parent_functional_unit_rk', 'leaf'], `units[${i}]`));
+    D.metrics.forEach((m, i) => need(m, ['eng', 'name', 'block', 'type', 'vt', 'change', 'red', 'yellow', 'tdir', 'ttype', 'threshold_scope'], `metrics[${i}]`));
+    Object.entries(D.facts).forEach(([rk, fs]) => Object.entries(obj(fs) ? fs : {}).forEach(([e, f]) => {
+      if (f !== null && (!obj(f) || !Array.isArray(f.cur) || !Array.isArray(f.prev) || !('value_final' in f))) out.push(`facts.${rk}.${e}: нужны value_final, cur и prev (или null, если данных нет)`);
+    }));
+    return out;
+  })();
+  if (PROBLEMS.length) {
+    const txt = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    document.getElementById('app').innerHTML = `<div style="min-height:100vh;padding:40px 22px;background:#05060A;color:#E8ECF6;font:15px/1.5 system-ui,sans-serif">
+      <p style="font-size:20px;font-weight:700;margin:0 0 10px">COO Hub: страница не может показать эти данные</p>
+      <p style="margin:0 0 14px;color:#9AA3B8">Проверьте данные скриптом tools/validate_data.py — он скажет подробно, что поправить.</p>
+      <ul style="margin:0;padding-left:20px">${PROBLEMS.slice(0, 25).map(p => `<li>${txt(p)}</li>`).join('')}</ul>
+      ${PROBLEMS.length > 25 ? `<p style="color:#9AA3B8">…и ещё ${PROBLEMS.length - 25}</p>` : ''}</div>`;
+    console.error('COO Hub: данные не прошли проверку', PROBLEMS);
+    return;
+  }
+
   const D = window.DATA, META = D.meta, U = D.units, MS = D.metrics, F = D.facts, BLOCKS = D.blocks;
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];

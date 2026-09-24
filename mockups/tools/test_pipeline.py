@@ -349,6 +349,69 @@ def test_errors(tmp):
     print("  ошибки и XLSX: проверены")
 
 
+# --------------------------------------------------------------------------- 4. формат данных и встраивание
+def test_validator():
+    import copy
+    import validate_data as V
+    base = json.loads((ROOT / "agent_kit" / "minimal_example.json").read_text(encoding="utf-8"))
+    e, _ = V.validate(base)
+    check(not e, f"минимальный пример не прошёл проверку: {e}")
+
+    def broken(fn, needle, what):
+        d = copy.deepcopy(base)
+        fn(d)
+        errs, _ = V.validate(d)
+        check(any(needle in x for x in errs), f"валидатор не поймал: {what} — {errs[:2]}")
+
+    def fractions(d):
+        for fs in d["facts"].values():
+            f = fs["okr_linkage"]
+            f["value_final"] /= 100
+            f["cur"] = [x / 100 for x in f["cur"]]
+            f["mom_value_final"] /= 100
+    broken(fractions, "похоже на доли", "доли вместо процентов")
+
+    def mom_prior(d):
+        for fs in d["facts"].values():
+            f = fs["open_vacancies_hq"]
+            f["mom_value_final"] = f["cur"][-2]
+    broken(mom_prior, "похоже на прошлое значение", "прошлое значение вместо изменения")
+
+    def yoy_prior(d):
+        for fs in d["facts"].values():
+            f = fs["open_vacancies_hq"]
+            f["yoy_value_final"] = f["prev"][8]
+    broken(yoy_prior, "yoy_value_final похоже на прошлогоднее", "прошлогоднее значение вместо изменения")
+    broken(lambda d: d["facts"]["p1"]["okr_linkage"].update(value_final=44), "последний элемент cur", "cur и value_final расходятся")
+    broken(lambda d: d["units"][1].update(leaf=False), "leaf = false", "leaf у юнита без детей")
+    broken(lambda d: d["metrics"][0].update(tdir="down"), "tdir", "tdir против пары порогов")
+    broken(lambda d: d["units"][2].update(parent_functional_unit_rk="nope"), "не найден", "родителя нет в списке")
+    broken(lambda d: d["units"][2].update(parent_functional_unit_rk=None, leaf=True), "Корней", "два корня")
+    broken(lambda d: d["units"][1].update(functional_unit_rk="p 1"), "functional_unit_rk", "пробел в идентификаторе")
+    broken(lambda d: d["metrics"][0].update(red=0.4, yellow=0.6), "пороги 0.4 / 0.6 похожи на доли", "пороги долями")
+    broken(lambda d: d["meta"].update(n_fact=8), "n_fact", "n_fact не совпадает с месяцем")
+    broken(lambda d: d["metrics"][1].update(vt="percent"), "vt", "неизвестный vt")
+    print("  формат данных: минимальный пример проходит, 12 типичных ошибок ловятся")
+
+
+def test_embed():
+    import embed_data
+    doc = json.loads((ROOT / "agent_kit" / "minimal_example.json").read_text(encoding="utf-8"))
+    doc["units"][1]["functional_unit_nm"] = "Платежи </script><b>x</b> <!-- и комментарий"
+    tpl = "<title>t</title><script>window.DATA = " + embed_data.TOKEN + ";</script><script>app()</script>"
+    html = embed_data.embed(tpl, doc)
+    check(html.count("</script>") == 2 and "<!--" not in html, "встраивание: текст из данных закрыл тег script")
+    check("<title>COO Hub · Сентябрь 2026</title>" in html, "встраивание: заголовок вкладки")
+    data = html.split("window.DATA = ", 1)[1].rsplit(";</script><script>app()", 1)[0]
+    check(json.loads(data)["units"][1]["functional_unit_nm"].startswith("Платежи </script>"), "встраивание: данные не читаются обратно")
+    try:
+        embed_data.embed(tpl + tpl, doc)
+        FAILS.append("встраивание: две метки в шаблоне должны останавливать")
+    except ValueError:
+        pass
+    print("  встраивание: экранирование, заголовок и защита от второй метки проверены")
+
+
 def main():
     with tempfile.TemporaryDirectory() as t:
         tmp = Path(t)
@@ -356,6 +419,8 @@ def main():
         test_roundtrip(tmp)
         stress = test_stress(tmp)
         test_errors(tmp)
+        test_validator()
+        test_embed()
         if len(sys.argv) > 1:  # сохранить стресс-данные, чтобы собрать по ним страницу
             Path(sys.argv[1]).write_bytes(stress.read_bytes())
     if FAILS:
