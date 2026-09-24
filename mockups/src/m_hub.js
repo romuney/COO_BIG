@@ -106,6 +106,7 @@
     back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>',
     chev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
     moon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13.6A7.6 7.6 0 1 1 10.4 5a6 6 0 0 0 8.6 8.6z"/></svg>',
+    sun: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>',
     x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
     play: '<svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0v12l10-6z"/></svg>',
     check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg>',
@@ -216,7 +217,7 @@
         <span class="mark">COO${NB}Hub</span>
         <button class="unitbtn press" id="unitBtn" aria-label="Сменить юнит"><span id="unitName"></span>${ICON.chev}</button>
         <span class="sp"></span>
-        <button class="icob press" id="themeBtn" aria-label="Сменить тему">${ICON.moon}</button>
+        <button class="icob press" id="themeBtn"></button>
       </div>
       <nav class="seg" id="seg" aria-label="Разделы">
         <span class="ind" id="segInd"></span>
@@ -1119,10 +1120,22 @@
     else { anchored(() => renderMap(how.mode || 'fade', how)); rest(); }
   }
 
+  // тёмная — по умолчанию; светлая — только по кнопке, и этот выбор запоминается на устройстве
+  const THEME_KEY = 'coohub-theme';
+  function applyTheme(t) {
+    const light = t === 'light', root = document.documentElement;
+    if (light) root.setAttribute('data-hub-theme', 'light'); else root.removeAttribute('data-hub-theme');
+    const b = $('#themeBtn');
+    b.innerHTML = light ? ICON.moon : ICON.sun;
+    b.setAttribute('aria-label', light ? 'Включить тёмную тему' : 'Включить светлую тему');
+  }
+  let theme = 'dark';
+  try { if (localStorage.getItem(THEME_KEY) === 'light') theme = 'light'; } catch (e) { /* хранилище недоступно */ }
+  applyTheme(theme);
   $('#themeBtn').addEventListener('click', () => {
-    const order = ['', 'light', 'dark'], cur = document.documentElement.getAttribute('data-theme') || '';
-    const nx = order[(order.indexOf(cur) + 1) % order.length];
-    if (nx) document.documentElement.setAttribute('data-theme', nx); else document.documentElement.removeAttribute('data-theme');
+    theme = theme === 'light' ? 'dark' : 'light';
+    applyTheme(theme);
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* не страшно */ }
   });
 
   /* ---------------------------------------------------------------- первый кадр: сначала радар, остальное — следом */

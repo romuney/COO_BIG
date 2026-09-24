@@ -2,7 +2,7 @@
    Приборная панель для одного очень занятого человека.
    Движение объясняет пространство и отвечает на касание за 100 мс. Анимируем только transform и opacity:
    раскладка во время движения не пересчитывается, поэтому ничего не дёргается. Всё выключается при reduce-motion.
-   Тёмная тема — неоновая: глубокий чёрный с синим отливом, статусы светятся своим цветом. */
+   Тёмная неоновая тема открывается по умолчанию: глубокий чёрный с синим отливом, статусы светятся своим цветом. */
 @property --tension { syntax: '<percentage>'; inherits: false; initial-value: 30%; }
 @property --bglow { syntax: '<color>'; inherits: false; initial-value: #3d6bff; }
 
@@ -53,39 +53,9 @@
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --ground: #05060A;
-    --page-bg: radial-gradient(120% 46% at 50% -6%, #0E1433 0%, rgba(14,20,51,0) 70%), #05060A;
-    --surf: #0C0E16; --surf-2: #121524; --surf-3: #1A1E31;
-    --ink: #EEF2FF; --ink-2: #A7B0D0; --muted: #6C7596; --rule: #1C2136;
-    --accent: #5C9DFF; --accent-soft: #10204A; --accent-ink: #9CC4FF;
-    --crit: #FF3D6E; --crit-soft: #2A0D18; --crit-ink: #FF8FB0;
-    --warn: #FFC940; --warn-soft: #2A2008; --warn-ink: #FFE08A;
-    --good: #2EF2A0; --good-soft: #06261B; --good-ink: #8CFFD4;
-    --card-bg: linear-gradient(180deg, #0F1221 0%, #0B0D16 100%);
-    --card-edge: rgba(120,140,255,.14);
-    --card-shadow: 0 0 0 1px rgba(92,157,255,.04), 0 12px 32px rgba(0,0,0,.5);
-    --btn-bg: #121524; --btn-edge: rgba(120,140,255,.18);
-    --btn-primary-bg: #5C9DFF; --btn-primary-ink: #03050B; --btn-primary-glow: 0 0 0 1px rgba(92,157,255,.5), 0 0 22px rgba(92,157,255,.45);
-    --chip-on-bg: #5C9DFF; --chip-on-ink: #03050B; --chip-on-glow: 0 0 18px rgba(92,157,255,.45);
-    --ind-bg: #151A36; --ind-glow: 0 0 0 1px rgba(92,157,255,.45), 0 0 16px rgba(92,157,255,.3);
-    --t-red: linear-gradient(155deg, rgba(255,61,110,.30) 0%, rgba(255,61,110,.07) 100%);
-    --t-amber: linear-gradient(155deg, rgba(255,201,64,.26) 0%, rgba(255,201,64,.06) 100%);
-    --t-ok: linear-gradient(155deg, rgba(46,242,160,.22) 0%, rgba(46,242,160,.05) 100%);
-    --t-none: linear-gradient(155deg, #151935 0%, #0E1122 100%);
-    --t-red-edge: rgba(255,61,110,.55); --t-amber-edge: rgba(255,201,64,.45); --t-ok-edge: rgba(46,242,160,.4); --t-none-edge: rgba(120,140,255,.18);
-    --t-red-glow: 0 0 24px rgba(255,61,110,.22); --t-amber-glow: 0 0 22px rgba(255,201,64,.16); --t-ok-glow: 0 0 22px rgba(46,242,160,.14);
-    --pill-red: rgba(255,61,110,.15); --pill-amber: rgba(255,201,64,.14); --pill-ok: rgba(46,242,160,.13); --pill-none: rgba(120,140,255,.12);
-    --spark-filter: drop-shadow(0 0 3px var(--sg));
-    --line-filter: url(#neon);
-    --tile-gap-bg: #05060A;
-    --shadow-2: 0 0 0 1px rgba(92,157,255,.06), 0 24px 60px rgba(0,0,0,.6);
-    --scrim: rgba(0,0,0,.66);
-  }
-}
-:root[data-theme="dark"] {
+/* Тёмная неоновая тема — по умолчанию, при любой системной теме и теме приложения-хоста.
+   Светлая включается только кнопкой в шапке (атрибут data-hub-theme="light"), выбор запоминается. */
+:root:not([data-hub-theme="light"]) {
   color-scheme: dark;
   --ground: #05060A;
   --page-bg: radial-gradient(120% 46% at 50% -6%, #0E1433 0%, rgba(14,20,51,0) 70%), #05060A;
