@@ -7,6 +7,7 @@
 """
 import base64
 import json
+import re
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parent
@@ -17,7 +18,8 @@ DATA = ROOT / "data" / "exec_board_2026-08.json"
 def inline_json(path):
     obj = json.loads(path.read_text(encoding="utf-8"))
     s = json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
-    return s.replace("</", "<\\/")  # чтобы JSON нельзя было закрыть тегом </script>
+    # чтобы текст из данных не закрыл тег </script> и не переключил разбор скрипта через <!--
+    return s.replace("</", "<\\/").replace("<!--", "<\\u0021--")
 
 FONTS = [
     ("Golos Text", "Golos-Text", "400 700"),
@@ -47,22 +49,29 @@ def font_css():
     return "\n".join(out)
 
 
-def build(template, out, app, data=None):
+def build(template, out, app, data=None, out_dir=None, title=None):
+    """out_dir — куда положить файл (по умолчанию dist); title — заголовок вкладки вместо шаблонного."""
     html = (SRC / "pages" / template).read_text(encoding="utf-8")
+    if title:
+        esc = title.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        html = re.sub(r"<title>.*?</title>", lambda _: f"<title>{esc}</title>", html, count=1)
     css_map = {"razbor": "razbor.css", "field": "field.css", "m_stories": "m_stories.css",
                "m_feed": "m_feed.css", "m_pult": "m_pult.css", "m_coohub": "m_coohub.css",
                "m_hub": "m_hub.css"}
     css_name = next((v for k, v in css_map.items() if k in app), "styles.css")
     html = html.replace("__FONTS__", font_css())
     html = html.replace("__CSS__", (SRC / css_name).read_text(encoding="utf-8"))
-    html = html.replace("__DATA__", inline_json(data or DATA))
     html = html.replace("__CHARTS__", (SRC / "lib" / "charts.js").read_text(encoding="utf-8"))
     html = html.replace("__DEVICES__", (SRC / "lib" / "devices.js").read_text(encoding="utf-8"))
     html = html.replace("__MOBILE__", (SRC / "lib" / "mobile.js").read_text(encoding="utf-8"))
     html = html.replace("__APP__", (SRC / app).read_text(encoding="utf-8"))
-    DIST.mkdir(parents=True, exist_ok=True)
-    (DIST / out).write_text(html, encoding="utf-8")
-    print(f"built {DIST / out} ({(DIST / out).stat().st_size // 1024} KB)")
+    # данные — последними: текст из витрины не должен совпасть с меткой шаблона и подменить код
+    html = html.replace("__DATA__", inline_json(data or DATA), 1)
+    dest = Path(out_dir) if out_dir else DIST
+    dest.mkdir(parents=True, exist_ok=True)
+    (dest / out).write_text(html, encoding="utf-8")
+    print(f"built {dest / out} ({(dest / out).stat().st_size // 1024} KB)")
+    return dest / out
 
 if __name__ == "__main__":
     build("exec_board.html", "exec_board_2026-08.html", "app.js")

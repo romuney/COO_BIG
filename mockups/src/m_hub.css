@@ -257,7 +257,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .crumbs .back { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--btn-bg); border: 1px solid var(--btn-edge); margin-right: 4px; }
 .crumbs .back svg { width: 12px; height: 12px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-.tm { position: relative; height: 312px; border-radius: 20px; overflow: hidden; background: var(--tile-gap-bg); contain: layout paint; }
+.tm { position: relative; height: calc(312px + var(--tm-extra, 0px)); border-radius: 20px; overflow: hidden; background: var(--tile-gap-bg); contain: layout paint; }
 .tm-layer { position: absolute; inset: 0; }
 /* плитка = пустая рамка на своём месте; фон (.tbg) и содержимое (.tc) анимируются отдельно,
    поэтому при зуме текст не растягивается и не переносится на каждом кадре */
@@ -280,6 +280,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .tile .tm2 { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-2); line-height: 1.3; }
 .tile.sm .tm2, .tile.sm .hk { display: none; } .tile.sm .tv { font-size: 20px; }
 .tile.xs .tc { padding: 8px; } .tile.xs .tn { font-size: 11.5px; } .tile.xs .tv { font-size: 15px; } .tile.xs .hc, .tile.xs .tm2 { display: none; }
+.tile.row .tc { flex-direction: row; align-items: center; gap: 8px; padding: 4px 10px; }
+.tile.row .tn { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile.row .tvr { margin-top: 0; flex: none; }
+.tile.row .tv { white-space: nowrap; }
+.tile.row .tv small { display: inline; margin: 0 0 0 .22em; font-size: .6em; }
+.tile.tight .tn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile.dot .tn { display: none; }
+.tile.dot .tc { padding: 6px; justify-content: center; }
+.tile.dot .tvr .g { display: none; }
 .tile.flash .tbg { animation: flash 1.1s var(--e-out) 2; }
 @keyframes flash { 50% { box-shadow: inset 0 0 0 3px var(--crit), 0 0 26px color-mix(in srgb, var(--crit) 45%, transparent); } }
 .tile.leaf .tc { justify-content: flex-start; gap: 8px; padding: 18px; }
@@ -410,6 +419,7 @@ table.f td:first-child { color: var(--accent); white-space: nowrap; padding-righ
 .tree button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; text-align: left; padding: 12px 0; border-top: 1px solid var(--rule); }
 .tree button:first-child { border-top: 0; }
 .tree .l2 { padding-left: 14px; } .tree .l3 { padding-left: 30px; }
+.tree .l4 { padding-left: 44px; } .tree .l5 { padding-left: 56px; } .tree .l6 { padding-left: 66px; }
 .tree .nm { font-size: 15px; min-width: 0; }
 .tree .nm small { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 .tree .on .nm { color: var(--accent); font-weight: 600; }
@@ -489,6 +499,12 @@ table.f td:first-child { color: var(--accent); white-space: nowrap; padding-righ
 @keyframes swap { from { opacity: .3; } }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+  /* переходы выключаем целиком: «длительность 0,01 мс» без списка свойств включала переход всего у всех элементов
+     на один кадр, и подгонка плиток мерила старые отступы */
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
-@media (min-width: 560px) { .tm { height: 360px; } }
+@media (min-width: 560px) { .tm { height: calc(360px + var(--tm-extra, 0px)); } }
+
+/* клетка без данных за месяц: вместо графика — одна спокойная строка */
+.chart .nodata { padding: 36px 8px; text-align: center; color: var(--muted); font-size: 14px; }
+.sh-hero .v.none { font-size: 26px; font-weight: 600; color: var(--muted); letter-spacing: -.01em; }
